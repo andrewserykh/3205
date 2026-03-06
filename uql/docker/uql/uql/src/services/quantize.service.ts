@@ -25,9 +25,24 @@ export const quantizeUrl = async (originalUrl: string) => {
   
   const meta = await parseSitePayload(originalUrl);
 
+  let uql: string;
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  do {
+    uql = generateRandomId(4);
+    const collision = await prisma.link.findUnique({ where: { uql } });
+    if (!collision) break;
+    attempts++;
+  } while (attempts < maxAttempts);
+
+  if (attempts >= maxAttempts) {
+    throw new Error('Failed to generate unique UQL');
+  }
+
   const link = await prisma.link.create({
     data: {
-      uql:         generateRandomId(4),
+      uql,
       url:         originalUrl,
       title:       meta.title,
       description: meta.description,
