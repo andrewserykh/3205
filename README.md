@@ -4,7 +4,9 @@ A Node.js/TypeScript service that processes and quantizes URLs, providing analys
 
 Andrew Serykh
 
-## Quick Start
+## Preview
+
+https://github.com/user-attachments/assets/f420fa56-20c9-4520-a161-9f520126d4ec
 
 ### Build and Run
 
