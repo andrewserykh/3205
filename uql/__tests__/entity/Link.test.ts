@@ -1,21 +1,17 @@
-import { Link } from '../../src/entity/Link';
+import type { Link } from '../../src/entity/Link';
 
-describe('Link Entity', () => {
-  describe('Link instantiation', () => {
-    it('should create a new Link instance', () => {
-      const link = new Link();
-      expect(link).toBeInstanceOf(Link);
-    });
-
-    it('should have required properties', () => {
-      const link = new Link();
-      link.id = 1;
-      link.uql = 'abc12';
-      link.url = 'http://example.com';
-      link.title = 'Example Title';
-      link.description = 'Example Description';
-      link.image = 'http://example.com/image.jpg';
-      link.created = new Date();
+describe('Link Type', () => {
+  describe('Link object creation', () => {
+    it('should create a valid Link object', () => {
+      const link: Link = {
+        id: 1,
+        uql: 'abc12',
+        url: 'http://example.com',
+        title: 'Example Title',
+        description: 'Example Description',
+        image: 'http://example.com/image.jpg',
+        created: new Date(),
+      };
 
       expect(link.id).toBe(1);
       expect(link.uql).toBe('abc12');
@@ -26,14 +22,33 @@ describe('Link Entity', () => {
       expect(link.created).toBeInstanceOf(Date);
     });
 
+    it('should have required properties', () => {
+      const link: Link = {
+        id: 1,
+        uql: 'abc12',
+        url: 'http://example.com',
+        title: 'Example Title',
+        description: 'Example Description',
+        image: 'http://example.com/image.jpg',
+        created: new Date(),
+      };
+
+      expect(link.id).toBeDefined();
+      expect(link.uql).toBeDefined();
+      expect(link.url).toBeDefined();
+      expect(link.created).toBeDefined();
+    });
+
     it('should allow nullable metadata fields', () => {
-      const link = new Link();
-      link.id = 1;
-      link.uql = 'abc12';
-      link.url = 'http://example.com';
-      link.title = null;
-      link.description = null;
-      link.image = null;
+      const link: Link = {
+        id: 1,
+        uql: 'abc12',
+        url: 'http://example.com',
+        title: null,
+        description: null,
+        image: null,
+        created: new Date(),
+      };
 
       expect(link.title).toBeNull();
       expect(link.description).toBeNull();
@@ -41,25 +56,32 @@ describe('Link Entity', () => {
     });
 
     it('should handle long descriptions', () => {
-      const link = new Link();
       const longDescription = 'A'.repeat(1000);
-      link.description = longDescription;
+      const link: Link = {
+        id: 1,
+        uql: 'abc12',
+        url: 'http://example.com',
+        title: 'Test',
+        description: longDescription,
+        image: null,
+        created: new Date(),
+      };
 
       expect(link.description).toBe(longDescription);
-      expect(link.description.length).toBe(1000);
+      expect(link.description!.length).toBe(1000);
     });
 
     it('should allow setting all properties', () => {
-      const link = new Link();
       const testDate = new Date('2024-01-01');
-
-      link.id = 42;
-      link.uql = 'test1';
-      link.url = 'https://test.example.com';
-      link.title = 'Test Title';
-      link.description = 'Test Description';
-      link.image = 'https://example.com/test.jpg';
-      link.created = testDate;
+      const link: Link = {
+        id: 42,
+        uql: 'test1',
+        url: 'https://test.example.com',
+        title: 'Test Title',
+        description: 'Test Description',
+        image: 'https://example.com/test.jpg',
+        created: testDate,
+      };
 
       expect(link.id).toBe(42);
       expect(link.uql).toBe('test1');
@@ -69,29 +91,6 @@ describe('Link Entity', () => {
       expect(link.image).toBe('https://example.com/test.jpg');
       expect(link.created).toEqual(testDate);
     });
-
-    it('should handle empty string values', () => {
-      const link = new Link();
-      link.title = '';
-      link.description = '';
-      link.image = '';
-
-      expect(link.title).toBe('');
-      expect(link.description).toBe('');
-      expect(link.image).toBe('');
-    });
-
-    it('should handle undefined metadata', () => {
-      const link = new Link();
-      link.id = 1;
-      link.uql = 'abc12';
-      link.url = 'http://example.com';
-
-      // These should be undefined initially
-      expect(link.title).toBeUndefined();
-      expect(link.description).toBeUndefined();
-      expect(link.image).toBeUndefined();
-    });
   });
 
   describe('Link validation', () => {
@@ -99,8 +98,15 @@ describe('Link Entity', () => {
       const validUqlValues = ['abc', 'abc123', 'a', '0123456789'];
 
       for (const uql of validUqlValues) {
-        const link = new Link();
-        link.uql = uql;
+        const link: Link = {
+          id: 1,
+          uql,
+          url: 'http://example.com',
+          title: null,
+          description: null,
+          image: null,
+          created: new Date(),
+        };
         expect(link.uql).toBe(uql);
       }
     });
@@ -115,8 +121,15 @@ describe('Link Entity', () => {
       ];
 
       for (const url of validUrls) {
-        const link = new Link();
-        link.url = url;
+        const link: Link = {
+          id: 1,
+          uql: 'test',
+          url,
+          title: null,
+          description: null,
+          image: null,
+          created: new Date(),
+        };
         expect(link.url).toBe(url);
       }
     });

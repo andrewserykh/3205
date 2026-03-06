@@ -1,0 +1,22 @@
+services:
+  uql:
+    image: "uql:latest"
+    container_name: uql
+    restart: unless-stopped
+    ports:
+      - "20001:20001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/database.db
+    volumes:
+      - ./uql/docker/data:/app/data
+      - ./uql/docker/logs:/app/logs
+
+  vue_uql:
+    image: "vue_uql:latest"
+    container_name: vue_uql
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - uql

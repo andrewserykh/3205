@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  vue_uql:
+    image: "vue_uql:latest"
+    container_name: vue_uql
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

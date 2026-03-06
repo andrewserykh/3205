@@ -7,6 +7,11 @@ export interface SitePayload {
   image: string | null;
 }
 
+/**
+ * Parses website and extracts meta (title, description, image)
+ * @param {string} url - URL
+ * @returns {Promise<SitePayload>} Some Open Graph meta tags
+ */
 export async function parseSitePayload(url: string): Promise<SitePayload> {
   try {
     const response = await axios.get(url, {
@@ -36,10 +41,6 @@ export async function parseSitePayload(url: string): Promise<SitePayload> {
       image,
     };
   } catch (error) {
-    return {
-      title: null,
-      description: null,
-      image: null,
-    };
+    throw new Error(`Failed to fetch site data: ${error.message}`);
   }
 }

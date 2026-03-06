@@ -1,0 +1,5 @@
+node_modules/
+docker/vue_uql/vue_uql/
+.DS_Store
+.vscode/
+.idea/

@@ -1,8 +1,6 @@
-import { AppDataSource } from '../data-source';
-import { Link } from '../entity/Link';
+import { prisma } from '../data-source';
 import { parseSitePayload } from './parser';
 
-// Custom random ID generator (works with both CommonJS and ESM)
 const generateRandomId = (length: number): string => {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -12,10 +10,6 @@ const generateRandomId = (length: number): string => {
   return result;
 };
 
-const nanoid = (length: number) => generateRandomId(length);
-
-const linkRepo = () => AppDataSource.getRepository(Link);
-
 export const quantizeUrl = async (originalUrl: string) => {
   try {
     new URL(originalUrl);
@@ -23,29 +17,39 @@ export const quantizeUrl = async (originalUrl: string) => {
     throw new Error('Invalid URL format');
   }
 
-  const existing = await linkRepo().findOne({ where: { url: originalUrl } });
-   if (existing) 
+  const existing = await prisma.link.findUnique({ 
+    where: { url: originalUrl } 
+  });
+  if (existing) 
     return existing;
   
   const meta = await parseSitePayload(originalUrl);
 
-  const link = linkRepo().create({
-    uql:         nanoid(4),
-    url:         originalUrl,
-    title:       meta.title,
-    description: meta.description,
-    image:       meta.image,
+  const link = await prisma.link.create({
+    data: {
+      uql:         generateRandomId(4),
+      url:         originalUrl,
+      title:       meta.title,
+      description: meta.description,
+      image:       meta.image,
+    },
   });
 
-  await linkRepo().save(link);
   return link;
 };
 
-export const findByShortId = async (uql: string) => {
-  return linkRepo().findOne({ where: { uql } });
+export const findByUql = async (uql: string) => {
+  return prisma.link.findUnique({ where: { uql } });
 };
 
 export const findAll = async () => {
-  return linkRepo().find();
+  return prisma.link.findMany();
+};
+
+export const findLastN = async (limit: number) => {
+  return prisma.link.findMany({
+    orderBy: { created: 'desc' },
+    take: limit,
+  });
 };
 

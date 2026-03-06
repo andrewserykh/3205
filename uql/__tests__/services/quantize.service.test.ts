@@ -1,14 +1,20 @@
-jest.mock('../../src/data-source');
+jest.mock('../../src/data-source', () => ({
+  prisma: {
+    link: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../src/services/parser');
 
-import { AppDataSource } from '../../src/data-source';
-import { Link } from '../../src/entity/Link';
-import { quantizeUrl, findByShortId, findAll } from '../../src/services/quantize.service';
+import { prisma } from '../../src/data-source';
+import { quantizeUrl, findByUql, findAll } from '../../src/services/quantize.service';
 import * as parser from '../../src/services/parser';
 
 describe('Quantize Service', () => {
   const mockParser = parser as jest.Mocked<typeof parser>;
-  let mockLinkRepository: any;
   let mathRandomSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -31,13 +37,13 @@ describe('Quantize Service', () => {
       return val;
     });
 
-    mockLinkRepository = {
-      findOne: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-    };
-    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockLinkRepository);
+    (prisma.link.findUnique as jest.Mock) = jest.fn();
+    (prisma.link.create as jest.Mock) = jest.fn();
+    (prisma.link.findMany as jest.Mock) = jest.fn();
+  });
+
+  afterEach(() => {
+    mathRandomSpy.mockRestore();
   });
 
   describe('quantizeUrl', () => {
@@ -50,7 +56,7 @@ describe('Quantize Service', () => {
       };
 
       mockParser.parseSitePayload.mockResolvedValue(mockMeta);
-      mockLinkRepository.findOne.mockResolvedValue(null);
+      (prisma.link.findUnique as jest.Mock).mockResolvedValue(null);
 
       const mockLink = {
         id: 1,
@@ -62,8 +68,7 @@ describe('Quantize Service', () => {
         created: new Date(),
       };
 
-      mockLinkRepository.create.mockReturnValue(mockLink);
-      mockLinkRepository.save.mockResolvedValue(mockLink);
+      (prisma.link.create as jest.Mock).mockResolvedValue(mockLink);
 
       const result = await quantizeUrl(originalUrl);
 
@@ -85,12 +90,12 @@ describe('Quantize Service', () => {
         created: new Date(),
       };
 
-      mockLinkRepository.findOne.mockResolvedValue(existingLink);
+      (prisma.link.findUnique as jest.Mock).mockResolvedValue(existingLink);
 
       const result = await quantizeUrl(originalUrl);
 
       expect(result).toEqual(existingLink);
-      expect(mockLinkRepository.save).not.toHaveBeenCalled();
+      expect(prisma.link.create).not.toHaveBeenCalled();
       expect(mockParser.parseSitePayload).not.toHaveBeenCalled();
     });
 
@@ -109,7 +114,7 @@ describe('Quantize Service', () => {
     it('should handle metadata parsing errors gracefully', async () => {
       const originalUrl = 'http://example.com';
 
-      mockLinkRepository.findOne.mockResolvedValue(null);
+      (prisma.link.findUnique as jest.Mock).mockResolvedValue(null);
       mockParser.parseSitePayload.mockResolvedValue({
         title: null,
         description: null,
@@ -126,8 +131,7 @@ describe('Quantize Service', () => {
         created: new Date(),
       };
 
-      mockLinkRepository.create.mockReturnValue(mockLink);
-      mockLinkRepository.save.mockResolvedValue(mockLink);
+      (prisma.link.create as jest.Mock).mockResolvedValue(mockLink);
 
       const result = await quantizeUrl(originalUrl);
 
@@ -144,7 +148,7 @@ describe('Quantize Service', () => {
       ];
 
       for (const url of validUrls) {
-        mockLinkRepository.findOne.mockResolvedValue(null);
+        (prisma.link.findUnique as jest.Mock).mockResolvedValue(null);
         mockParser.parseSitePayload.mockResolvedValue({
           title: null,
           description: null,
@@ -161,15 +165,14 @@ describe('Quantize Service', () => {
           created: new Date(),
         };
 
-        mockLinkRepository.create.mockReturnValue(mockLink);
-        mockLinkRepository.save.mockResolvedValue(mockLink);
+        (prisma.link.create as jest.Mock).mockResolvedValue(mockLink);
 
         await expect(quantizeUrl(url)).resolves.toBeDefined();
       }
     });
   });
 
-  describe('findByShortId', () => {
+  describe('findByUql', () => {
     it('should find a link by short ID', async () => {
       const uql = 'abc12';
       const mockLink = {
@@ -182,29 +185,29 @@ describe('Quantize Service', () => {
         created: new Date(),
       };
 
-      mockLinkRepository.findOne.mockResolvedValue(mockLink);
+      (prisma.link.findUnique as jest.Mock).mockResolvedValue(mockLink);
 
-      const result = await findByShortId(uql);
+      const result = await findByUql(uql);
 
       expect(result).toEqual(mockLink);
-      expect(mockLinkRepository.findOne).toHaveBeenCalledWith({ where: { uql } });
+      expect(prisma.link.findUnique).toHaveBeenCalledWith({ where: { uql } });
     });
 
     it('should return undefined if short ID not found', async () => {
       const uql = 'notfound';
 
-      mockLinkRepository.findOne.mockResolvedValue(undefined);
+      (prisma.link.findUnique as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await findByShortId(uql);
+      const result = await findByUql(uql);
 
       expect(result).toBeUndefined();
     });
 
     it('should handle database errors', async () => {
       const uql = 'abc12';
-      mockLinkRepository.findOne.mockRejectedValue(new Error('Database error'));
+      (prisma.link.findUnique as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      await expect(findByShortId(uql)).rejects.toThrow('Database error');
+      await expect(findByUql(uql)).rejects.toThrow('Database error');
     });
   });
 
@@ -231,16 +234,16 @@ describe('Quantize Service', () => {
         },
       ];
 
-      mockLinkRepository.find.mockResolvedValue(mockLinks);
+      (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks);
 
       const result = await findAll();
 
       expect(result).toEqual(mockLinks);
-      expect(mockLinkRepository.find).toHaveBeenCalled();
+      expect(prisma.link.findMany).toHaveBeenCalled();
     });
 
     it('should return empty array when no links exist', async () => {
-      mockLinkRepository.find.mockResolvedValue([]);
+      (prisma.link.findMany as jest.Mock).mockResolvedValue([]);
 
       const result = await findAll();
 
@@ -248,7 +251,7 @@ describe('Quantize Service', () => {
     });
 
     it('should handle database errors', async () => {
-      mockLinkRepository.find.mockRejectedValue(new Error('Database error'));
+      (prisma.link.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(findAll()).rejects.toThrow('Database error');
     });

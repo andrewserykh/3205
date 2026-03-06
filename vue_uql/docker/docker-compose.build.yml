@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  vue_uql:
+    build:
+      context: "./vue_uql"    # ← папка docker/vue_uql/
+      dockerfile: Dockerfile
+      args:
+        NAME: "vue_uql"
+      target: production
+    image: "vue_uql:${TAG:-latest}"
+    container_name: vue_uql

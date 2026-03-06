@@ -12,11 +12,13 @@ clean:
 sync:
 	rsync -Rr \
 		--include='src/***' \
+		--include='prisma/***' \
+		--include='docker-entrypoint.sh' \
 		--include='package.json' \
 		--include='package-lock.json' \
 		--include='tsconfig.json' \
 		--exclude='*' \
-		. ./docker/uql/uql
+		. $(TARGET_DIR)
 
 up:
 	cd $(DOCKER_DIR) && docker-compose up -d

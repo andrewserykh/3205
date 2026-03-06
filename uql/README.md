@@ -23,11 +23,11 @@ The service will be available at `http://localhost:20001`
 
 ## API Documentation
 
-### Quantize Endpoint
+### 1. Create Short URL
 
 **POST** `/v1.0/quantize`
 
-Analyzes and quantizes a given URL.
+Analyzes a given URL and creates a short quantized version with metadata extraction.
 
 **Request Body:**
 ```json
@@ -36,45 +36,140 @@ Analyzes and quantizes a given URL.
 }
 ```
 
-**Headers:**
-```
-Content-Type: application/json
-```
-
-### Examples
-
-Google Docs:
-```bash
-curl -X POST http://localhost:20001/v1.0/quantize \
-  -H 'Content-Type: application/json' \
-  -d '{"url":"https://docs.google.com/document/d/1stgIumhJOSl9bjoFfCvDFK7ExOBlkriL0y-bM6nMTiM/edit?tab=t.0"}'
-```
-
-Wikipedia:
-```bash
-curl -X POST http://localhost:20001/v1.0/quantize \
-  -H 'Content-Type: application/json' \
-  -d '{"url":"https://ru.wikipedia.org/wiki/%D0%A0%D0%BE%D1%88%D0%B0%D0%BB,_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%9B%D0%B0%D0%B7%D0%B0%D1%80%D0%B5%D0%B2%D0%B8%D1%87"}'
+**Response (201 Created):**
+```json
+{
+  "uql": "abc123",
+  "shortUrl": "http://localhost:20001/abc123",
+  "meta": {
+    "title": "Example Domain",
+    "description": "Example of a domain",
+    "image": null
+  }
+}
 ```
 
-Website:
-```bash
-curl -X POST http://localhost:20001/v1.0/quantize \
-  -H 'Content-Type: application/json' \
-  -d '{"url":"http://nextflight.ru"}'
+**Error Cases:**
+- 400: Empty request body or missing/invalid "url" field
+- 400: Invalid URL format
+- 500: Internal server error during quantization
+
+---
+
+### 2. Get All Links
+
+**GET** `/v1.0/quantize`
+
+Retrieves all stored quantized links.
+
+**Response (200 OK):**
+```json
+[
+  {
+    "uql": "abc123",
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "description": "Example of a domain",
+    "image": null,
+    "created": "2026-03-06T08:30:39.883Z"
+  }
+]
 ```
 
-## Project Structure
+---
 
-- `src/` - TypeScript source code
-  - `api/` - API endpoints and routes
-  - `services/` - Business logic services
-  - `entity/` - Data models
-  - `data-source.ts` - Data source configuration
-  - `index.ts` - Application entry point
-- `docker/` - Docker configuration and deployment files
-- `Makefile` - Build and deployment commands
+### 3. Get Link by Short ID
 
-## Development
+**GET** `/v1.0/quantize/:uql`
 
-The project uses TypeScript and is containerized with Docker for easy deployment and testing.
+Retrieves detailed information about a specific quantized link.
+
+**Parameters:**
+- `uql` (string, required): The short ID of the link
+
+**Response (200 OK):**
+```json
+{
+  "uql": "abc123",
+  "url": "https://example.com",
+  "meta": {
+    "title": "Example Domain",
+    "description": "Example of a domain",
+    "image": null
+  }
+}
+```
+
+**Error Cases:**
+- 404: Link not found
+- 500: Internal server error
+
+---
+
+### 4. Redirect by Short ID
+
+**GET** `/:uql`
+
+Redirects to the original URL using the short ID (301 permanent redirect).
+
+**Parameters:**
+- `uql` (string, required): The short ID of the link
+
+**Response:**
+- 301 Moved Permanently (redirects to original URL)
+
+**Error Cases:**
+- 404: Link not found
+- 500: Internal server error
+
+---
+
+### 5. Get All History
+
+**GET** `/v1.0/history`
+
+Retrieves all quantized links in the history.
+
+**Response (200 OK):**
+```json
+[
+  {
+    "uql": "abc123",
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "description": "Example of a domain",
+    "image": null,
+    "created": "2026-03-06T08:30:39.883Z"
+  }
+]
+```
+
+---
+
+### 6. Get Recent Links
+
+**GET** `/v1.0/history/:limit`
+
+Retrieves the last N quantized links ordered by creation date (newest first).
+
+**Parameters:**
+- `limit` (number, required): Maximum number of links to retrieve (must be positive)
+
+**Response (200 OK):**
+```json
+[
+  {
+    "uql": "abc123",
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "description": "Example of a domain",
+    "image": null,
+    "created": "2026-03-06T08:30:39.883Z"
+  }
+]
+```
+
+**Error Cases:**
+- 400: Limit is not a positive number
+- 500: Internal server error
+

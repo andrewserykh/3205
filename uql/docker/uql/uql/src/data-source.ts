@@ -1,12 +1,3 @@
-import "reflect-metadata";
-import { DataSource } from "typeorm";
-import { Link } from "./entity/Link";
+import { PrismaClient } from "@prisma/client";
 
-export const AppDataSource = new DataSource({
-  type: "better-sqlite3",
-  database: process.env.NODE_ENV === 'production'
-    ? '/app/data/database.sqlite'
-    : 'database.sqlite',
-  synchronize: true,
-  entities: [Link],
-});
+export const prisma = new PrismaClient();

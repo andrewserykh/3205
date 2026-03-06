@@ -11,6 +11,7 @@ services:
       - "20001"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/database.db
       - HOST=0.0.0.0
       - PORT=20001
     volumes:

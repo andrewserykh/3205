@@ -1,0 +1,15 @@
+node_modules/
+docker/uql/uql
+dist/
+.env
+.env.local
+database.sqlite
+database.sqlite-shm
+database.sqlite-wal
+coverage/
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+prisma/migrations/
